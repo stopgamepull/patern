@@ -1,0 +1,469 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trenches Pattern</title>
+    <link rel="icon" type="image/x-icon" href="images/fav.png">
+    <style> 
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            height: 100%;
+            background: black;
+            background-repeat: repeat;
+            font-family: sans-serif;
+        }
+
+        #background-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #preview {
+            left: 50%;
+            top: 50%;
+            position: relative;
+            transform: translate3d(-50%, -50%, 0);
+            background: rgba(0, 0, 0, 0.6);
+            padding: 1rem;
+            border: 1px solid white;
+            float: left;
+        }
+        #preview button {
+            display: none;
+        }
+        #preview button {
+            border-radius: 2px;
+            padding: 0.7rem 1rem;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: 0.2s;
+            display: block;
+            margin-top: 1rem;
+            text-align: center;
+            width: 100%;
+        }
+        #preview button:hover {
+            cursor: pointer;
+            border-color: white;
+            color: white;
+            transition: 0.2s;
+        }
+        #preview #thumb-cont {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            border: 1px solid white;
+        }
+        #preview #thumb-cont img {
+            max-width: 100%;
+            max-height: 100%;
+            position: relative;
+            top: 50%;
+            left: 50%;
+            transform: translate3d(-50%, -50%, 0);
+        }
+        #preview #thumb-cont img[src*="image/gif"] {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 49.75%, white 49.75%, white 50.25%, transparent 50.25%), linear-gradient(-45deg, transparent 49.75%, white 49.75%, white 50.25%, transparent 50.25%);
+        }
+
+        /* Creative Loader */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        .orbit-loader {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .orbit {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 2px solid transparent;
+            border-radius: 50%;
+            border-top-color: rgba(255, 255, 255, 0.8);
+            animation: orbitRotate 2s linear infinite;
+        }
+
+        .orbit:nth-child(1) {
+            width: 80%;
+            height: 80%;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0.1s;
+            border-top-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .orbit:nth-child(2) {
+            width: 60%;
+            height: 60%;
+            top: 20%;
+            left: 20%;
+            animation-delay: 0.2s;
+            border-top-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .orbit:nth-child(3) {
+            width: 40%;
+            height: 40%;
+            top: 30%;
+            left: 30%;
+            animation-delay: 0.3s;
+            border-top-color: rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes orbitRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        .loading-text::after {
+            content: "";
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.5);
+            animation: loadingPulse 1.5s infinite;
+        }
+
+        @keyframes loadingPulse {
+            0%, 100% { width: 40px; opacity: 0.5; }
+            50% { width: 60px; opacity: 1; }
+        }
+
+        /* Main Content - Updated with styles from your example */
+        #main-content {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            color: #fff;
+            opacity: 0;
+  
+            transition: opacity 1s ease;
+            z-index: 100;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        #main-content.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .container {
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+            padding: 20px;
+            height: 100vh;
+            flex: 1;
+        }
+
+        /* Left Panel - Original Squares Animation */
+        .left-panel {
+            flex: 1;
+            display: flex;
+        
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .squares {
+            position: relative;
+            width: 0;
+            height: 0;
+            top: 50%;
+            left: 50%;
+            animation: rotateandzoom 1s linear infinite;
+        }
+
+        .square {
+            border: 2px solid white;
+            border-bottom-right-radius: 100% 100%;
+            border-width: 0 2px 2px 0;
+            display: block;
+            position: absolute;
+            transform-origin: top left;
+        }
+
+        @keyframes rotateandzoom {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Right Panel - Updated with styles from your example */
+        .right-panel {
+            width: 30%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .project-title {
+            font-size: 2.8rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .social-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .social-button {
+            background: #fff;
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.3s, background 0.3s;
+        }
+
+        .social-button:hover {
+            transform: scale(1.05);
+            background: #ccc;
+        }
+
+        .ca-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #222;
+            padding: 10px 15px;
+            border-radius: 5px;
+            width: 560px;
+            height: 42px;
+            cursor: pointer;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .ca-container svg {
+            position: absolute;
+            right: 1%;
+        }
+
+        .ca-container:hover {
+            background: #333;
+        }
+
+        .ca-text {
+            font-size: 1.2rem;
+        }
+
+        .bottom-section {
+            padding: 50px;
+            text-align: center;
+        }
+
+        .mini-text {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+
+        .bottom-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .bottom-button {
+            background: #fff;
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.3s, background 0.3s;
+        }
+
+        .bottom-button:hover {
+            transform: scale(1.05);
+            background: #ccc;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 10px;
+            }
+            
+            .right-panel {
+                width: 100%;
+                padding: 20px;
+            }
+            
+            .project-title {
+                font-size: 2.5rem;
+            }
+            
+            .ca-container {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="background-preview"></div>
+    <div id="preview">
+      <div id="thumb-cont">
+        <img id="thumbnail" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D">
+      </div>
+      <button id="button">Trenches pattern</button>
+    </div>
+
+    <div id="loading-overlay">
+        <div class="orbit-loader">
+            <div class="orbit"></div>
+            <div class="orbit"></div>
+            <div class="orbit"></div>
+        </div>
+        <div class="loading-text">Loading</div>
+    </div>
+
+    <div id="main-content">
+        <div class="container">
+            <div class="left-panel">
+                <div class="squares"></div>
+            </div>
+            <div class="right-panel">
+                <h1 class="project-title">TRENCHES PATTERN</h1>
+                <div class="social-buttons">
+                    <a href="https://x.com/TrenchesPattern" class="social-button" target="_blank">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="currentColor"></path>
+                        </svg>
+                        Twitter
+                    </a>
+                </div>
+                <div class="ca-container" onclick="copyCAText()">
+                    <span class="ca-text">CA: </span>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="8" y="4" width="12" height="14" rx="1" fill="#222" stroke="#fff" stroke-width="2"></rect>
+                        <rect x="4" y="8" width="12" height="14" rx="1" fill="#222" stroke="#fff" stroke-width="2"></rect>
+                    </svg>
+                </div>
+                <div class="bottom-buttons">
+                    <a href="#" class="bottom-button">GENERATE</a>
+                    <a href="#" class="bottom-button">FILL IN</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <script>
+       document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('button').addEventListener('click', function() {
+        // Show loading overlay
+        fadeIn(document.getElementById('loading-overlay'));
+        fadeOut(document.getElementById('preview'));
+        
+        // Simulate loading delay
+        setTimeout(function() {
+            fadeOut(document.getElementById('loading-overlay'));
+            fadeIn(document.getElementById('main-content'));
+            
+            // Create original squares animation
+            var prev1 = 0, prev2 = 1;
+            var squaresContainer = document.querySelector('.squares');
+            for(var i = 0; i < 20; i++) {
+                var next = prev1 + prev2;
+                prev1 = prev2;
+                prev2 = next;
+                var square = document.createElement('div');
+                square.className = 'square';
+                square.style.width = prev1 + 'px';
+                square.style.height = prev2 + 'px';
+                square.style.transform = 'rotate(' + (i * 90) + 'deg)';
+                squaresContainer.appendChild(square);
+            }
+        }, 1500);
+    });
+});
+
+// Вспомогательные функции для fadeIn и fadeOut
+function fadeIn(element) {
+    element.style.display = 'flex';
+    element.style.opacity = 0;
+    var last = +new Date();
+    var tick = function() {
+        element.style.opacity = +element.style.opacity + (new Date() - last) / 400;
+        last = +new Date();
+        if (+element.style.opacity < 1) {
+            (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
+        }
+    };
+    tick();
+}
+
+function fadeOut(element) {
+    element.style.opacity = 1;
+    var last = +new Date();
+    var tick = function() {
+        element.style.opacity = +element.style.opacity - (new Date() - last) / 400;
+        last = +new Date();
+        if (+element.style.opacity > 0) {
+            (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
+        } else {
+            element.style.display = 'none';
+        }
+    };
+    tick();
+}
+    </script>
+
+</body></html>
